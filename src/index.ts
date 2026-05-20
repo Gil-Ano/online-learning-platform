@@ -8,6 +8,10 @@ import enrollmentRoutes from "./routes/enrollments";
 import lessonRoutes from "./routes/lessons";
 import progressRoutes from "./routes/progress";
 import reviewRoutes from "./routes/reviews";
+import quizRoutes from "./routes/quizzes";
+import certificateRoutes from "./routes/certificates";
+import discussionRoutes from "./routes/discussions";
+import dashboardRoutes from "./routes/dashboard";
 import { protect } from "./middleware/auth";
 
 dotenv.config();
@@ -35,6 +39,10 @@ app.use("/api/enrollments", enrollmentRoutes);
 app.use("/api/lessons", lessonRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/reviews", reviewRoutes);
+app.use("/api/quizzes", quizRoutes);
+app.use("/api/certificates", certificateRoutes);
+app.use("/api/discussions", discussionRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Online Learning Platform API is running" });

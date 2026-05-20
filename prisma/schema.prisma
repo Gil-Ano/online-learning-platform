@@ -7,32 +7,34 @@ datasource db {
 }
 
 model User {
-  id          String       @id @default(uuid())
-  name        String
-  email       String       @unique
-  password    String
-  role        Role         @default(STUDENT)
-  courses     Course[]
-  enrollments Enrollment[]
-  reviews     Review[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  id           String         @id @default(uuid())
+  name         String
+  email        String         @unique
+  password     String
+  role         Role           @default(STUDENT)
+  courses      Course[]
+  enrollments  Enrollment[]
+  reviews      Review[]
+  discussions  Discussion[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 model Course {
-  id           String       @id @default(uuid())
+  id           String         @id @default(uuid())
   title        String
   description  String
-  price        Float        @default(0)
+  price        Float          @default(0)
   image        String?
   instructorId String
-  instructor   User         @relation(fields: [instructorId], references: [id])
-  category     Category     @default(WEB_DEVELOPMENT)
+  instructor   User           @relation(fields: [instructorId], references: [id])
+  category     Category       @default(WEB_DEVELOPMENT)
   lessons      Lesson[]
   enrollments  Enrollment[]
   reviews      Review[]
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  discussions  Discussion[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 }
 
 model Lesson {
@@ -93,6 +95,16 @@ model Quiz {
   answer    Int
   lessonId  String
   lesson    Lesson   @relation(fields: [lessonId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Discussion {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
   createdAt DateTime @default(now())
 }
 

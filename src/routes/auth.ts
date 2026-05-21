@@ -87,4 +87,20 @@ router.put("/role", async (req: Request, res: Response) => {
   }
 });
 
+// PUT /api/auth/profile — Update user profile (name, etc)
+router.put("/profile", async (req: Request, res: Response) => {
+  try {
+    const { email, name } = req.body;
+    const user = await prisma.user.update({
+      where: { email: email as string },
+      data: { name },
+    });
+    const { password: _, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+  } catch (error) {
+    console.error("Profile update error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 export default router;

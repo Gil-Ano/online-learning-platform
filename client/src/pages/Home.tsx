@@ -20,6 +20,18 @@ const formatCategory = (cat: string) => {
     .join(" ");
 };
 
+const getInitials = (name: string) => {
+  return name
+    .split(" ")
+    .map((n) => n.charAt(0))
+    .join("")
+    .toUpperCase();
+};
+
+const pluralize = (count: number, word: string) => {
+  return `${count} ${word}${count === 1 ? "" : "s"}`;
+};
+
 const Home = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [search, setSearch] = useState("");
@@ -109,7 +121,7 @@ const Home = () => {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
           gap: "1.5rem",
           maxWidth: "1100px",
           margin: "0 auto",
@@ -126,21 +138,23 @@ const Home = () => {
                 background: "white",
                 borderRadius: "16px",
                 padding: "1.8rem",
-                border: "1px solid #f8c8dc",
+                border: "2px solid transparent",
                 boxShadow: "0 4px 15px rgba(233, 30, 99, 0.1)",
-                transition: "all 0.3s ease",
+                transition: "all 0.25s ease",
                 cursor: "pointer",
                 position: "relative",
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = "translateY(-6px)";
                 e.currentTarget.style.boxShadow =
-                  "0 12px 30px rgba(233, 30, 99, 0.2)";
+                  "0 14px 35px rgba(233, 30, 99, 0.25)";
+                e.currentTarget.style.borderColor = "#e91e63";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.transform = "translateY(0)";
                 e.currentTarget.style.boxShadow =
                   "0 4px 15px rgba(233, 30, 99, 0.1)";
+                e.currentTarget.style.borderColor = "transparent";
               }}
             >
               {/* Price Badge */}
@@ -184,31 +198,34 @@ const Home = () => {
                   : course.description}
               </p>
 
+              {/* Instructor */}
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "0.5rem",
+                  gap: "0.6rem",
                   marginBottom: "0.8rem",
                 }}
               >
                 <div
                   style={{
-                    width: "32px",
-                    height: "32px",
+                    width: "36px",
+                    height: "36px",
                     borderRadius: "50%",
-                    background: "#f8c8dc",
+                    background: "linear-gradient(135deg, #e91e63, #f8c8dc)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#e91e63",
+                    color: "white",
                     fontWeight: 700,
                     fontSize: "0.85rem",
                   }}
                 >
-                  {course.instructor.name.charAt(0)}
+                  {getInitials(course.instructor.name)}
                 </div>
-                <span style={{ color: "#666", fontSize: "0.9rem" }}>
+                <span
+                  style={{ color: "#666", fontSize: "0.9rem", fontWeight: 500 }}
+                >
                   {course.instructor.name}
                 </span>
               </div>
@@ -236,23 +253,25 @@ const Home = () => {
                   color: "#aaa",
                 }}
               >
-                <span>📚 {course._count.lessons} lessons</span>
-                <span>👥 {course._count.enrollments} students</span>
-                <span>⭐ {course._count.reviews}</span>
+                <span>📚 {pluralize(course._count.lessons, "lesson")}</span>
+                <span>
+                  👥 {pluralize(course._count.enrollments, "student")}
+                </span>
+                <span>⭐ {pluralize(course._count.reviews, "review")}</span>
               </div>
 
-              {/* View Course button */}
+              {/* View Course CTA */}
               <div
                 style={{
-                  marginTop: "1rem",
+                  marginTop: "1.2rem",
                   textAlign: "center",
-                  padding: "0.6rem",
+                  padding: "0.7rem",
                   borderRadius: "8px",
-                  background: "#fce4ec",
+                  background: "linear-gradient(135deg, #fce4ec, #f8c8dc)",
                   color: "#e91e63",
-                  fontWeight: 600,
-                  fontSize: "0.9rem",
-                  opacity: 0.9,
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  transition: "all 0.2s ease",
                 }}
               >
                 View Course →

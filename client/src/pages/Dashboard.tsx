@@ -99,7 +99,7 @@ const Dashboard = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => navigate(`/course/${enrollment.courseId}`)}
+                  onClick={() => navigate(`/learn/${enrollment.id}`)}
                   style={{
                     background: "#fce4ec",
                     color: "#e91e63",

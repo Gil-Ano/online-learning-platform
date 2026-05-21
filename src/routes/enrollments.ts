@@ -8,7 +8,6 @@ router.post("/", async (req: Request, res: Response) => {
   try {
     const { userId, courseId } = req.body;
 
-    // Check if already enrolled
     const existing = await prisma.enrollment.findUnique({
       where: {
         userId_courseId: { userId, courseId },
@@ -27,6 +26,26 @@ router.post("/", async (req: Request, res: Response) => {
     res.status(201).json(enrollment);
   } catch (error) {
     console.error("Enroll error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// GET /api/enrollments/single/:id — Get single enrollment
+router.get("/single/:id", async (req: Request, res: Response) => {
+  try {
+    const enrollment = await prisma.enrollment.findUnique({
+      where: { id: req.params.id as string },
+      include: { course: true },
+    });
+
+    if (!enrollment) {
+      res.status(404).json({ message: "Enrollment not found" });
+      return;
+    }
+
+    res.json(enrollment);
+  } catch (error) {
+    console.error("Get enrollment error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });

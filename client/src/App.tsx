@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import CourseDetail from "./pages/CourseDetail";
 import Dashboard from "./pages/Dashboard";
 import Learn from "./pages/Learn";
+import Success from "./pages/Success";
+import Cancel from "./pages/Cancel";
 
 function App() {
   return (
@@ -18,6 +20,8 @@ function App() {
         <Route path="/course/:id" element={<CourseDetail />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/learn/:id" element={<Learn />} />
+        <Route path="/success" element={<Success />} />
+        <Route path="/cancel" element={<Cancel />} />
       </Routes>
     </BrowserRouter>
   );

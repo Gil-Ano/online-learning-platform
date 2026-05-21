@@ -3,13 +3,13 @@ import prisma from "../prisma";
 
 const router = Router();
 
-// POST /api/lessons — Add a lesson to a course
+// POST /api/lessons — Add a lesson
 router.post("/", async (req: Request, res: Response) => {
   try {
-    const { title, videoUrl, order, courseId } = req.body;
+    const { title, content, videoUrl, order, courseId } = req.body;
 
     const lesson = await prisma.lesson.create({
-      data: { title, videoUrl, order, courseId },
+      data: { title, content, videoUrl, order, courseId },
     });
 
     res.status(201).json(lesson);
@@ -19,7 +19,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// GET /api/lessons/course/:courseId — Get all lessons for a course
+// GET /api/lessons/course/:courseId — Get lessons for a course
 router.get("/course/:courseId", async (req: Request, res: Response) => {
   try {
     const lessons = await prisma.lesson.findMany({
@@ -37,11 +37,11 @@ router.get("/course/:courseId", async (req: Request, res: Response) => {
 // PUT /api/lessons/:id — Update a lesson
 router.put("/:id", async (req: Request, res: Response) => {
   try {
-    const { title, videoUrl, order } = req.body;
+    const { title, content, videoUrl, order } = req.body;
 
     const lesson = await prisma.lesson.update({
       where: { id: req.params.id as string },
-      data: { title, videoUrl, order },
+      data: { title, content, videoUrl, order },
     });
 
     res.json(lesson);

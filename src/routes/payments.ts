@@ -44,8 +44,8 @@ router.post("/checkout", async (req: Request, res: Response) => {
       ],
       mode: "payment",
       success_url:
-        "http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}",
-      cancel_url: "http://localhost:3000/cancel",
+        "http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}",
+      cancel_url: "http://localhost:5173/cancel",
       metadata: {
         courseId: course.id,
         userId: userId,

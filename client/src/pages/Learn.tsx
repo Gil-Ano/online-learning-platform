@@ -5,8 +5,16 @@ import api from "../services/api";
 interface Lesson {
   id: string;
   title: string;
+  content: string | null;
   videoUrl: string | null;
   order: number;
+}
+
+interface Quiz {
+  id: string;
+  question: string;
+  options: string[];
+  answer: number;
 }
 
 interface ProgressData {
@@ -21,25 +29,28 @@ const Learn = () => {
   const [progress, setProgress] = useState<ProgressData | null>(null);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [courseTitle, setCourseTitle] = useState("");
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [selectedAnswers, setSelectedAnswers] = useState<
+    Record<string, number>
+  >({});
+  const [quizResults, setQuizResults] = useState<
+    Record<string, boolean | null>
+  >({});
+  const [quizGenerated, setQuizGenerated] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Get enrollment
         const enrollRes = await api.get(`/enrollments/single/${id}`);
         const enrollment = enrollRes.data;
         setCourseTitle(enrollment.course.title);
 
-        // Get lessons
         const lessonsRes = await api.get(
           `/lessons/course/${enrollment.courseId}`,
         );
         setLessons(lessonsRes.data);
-        if (lessonsRes.data.length > 0) {
-          setActiveLesson(lessonsRes.data[0]);
-        }
+        if (lessonsRes.data.length > 0) setActiveLesson(lessonsRes.data[0]);
 
-        // Get progress
         const progressRes = await api.get(`/progress/${id}`);
         setProgress(progressRes.data);
       } catch (err) {
@@ -49,12 +60,37 @@ const Learn = () => {
     fetchData();
   }, [id]);
 
+  const loadQuizzes = async (lessonId: string) => {
+    try {
+      const res = await api.get(`/quizzes/lesson/${lessonId}`);
+      if (res.data.length === 0) {
+        // Generate quizzes
+        await api.post(`/quizzes/generate/${lessonId}`);
+        const newRes = await api.get(`/quizzes/lesson/${lessonId}`);
+        setQuizzes(newRes.data);
+      } else {
+        setQuizzes(res.data);
+      }
+      setQuizGenerated(true);
+      setSelectedAnswers({});
+      setQuizResults({});
+    } catch (err) {
+      console.error("Quiz error:", err);
+    }
+  };
+
+  const submitQuiz = async (quizId: string, selectedOption: number) => {
+    try {
+      const res = await api.post("/quizzes/submit", { quizId, selectedOption });
+      setQuizResults((prev) => ({ ...prev, [quizId]: res.data.correct }));
+    } catch (err) {
+      console.error("Submit error:", err);
+    }
+  };
+
   const markComplete = async (lessonId: string) => {
     try {
-      await api.post("/progress", {
-        enrollmentId: id,
-        lessonId: lessonId,
-      });
+      await api.post("/progress", { enrollmentId: id, lessonId });
       const progressRes = await api.get(`/progress/${id}`);
       setProgress(progressRes.data);
     } catch (err) {
@@ -74,6 +110,7 @@ const Learn = () => {
 
   const allDone =
     progress && progress.completed === progress.total && progress.total > 0;
+  const allQuizzesPassed = quizzes.every((q) => quizResults[q.id] === true);
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: "#fce4ec" }}>
@@ -90,7 +127,6 @@ const Learn = () => {
           📚 {courseTitle}
         </h3>
 
-        {/* Progress bar */}
         <div
           style={{
             background: "#fce4ec",
@@ -115,22 +151,21 @@ const Learn = () => {
                 background: "#e91e63",
                 borderRadius: "10px",
                 height: "100%",
-                width: `${
-                  progress?.total
-                    ? (progress.completed / progress.total) * 100
-                    : 0
-                }%`,
+                width: `${progress?.total ? (progress.completed / progress.total) * 100 : 0}%`,
                 transition: "width 0.3s",
               }}
             />
           </div>
         </div>
 
-        {/* Lesson list */}
         {lessons.map((lesson) => (
           <div
             key={lesson.id}
-            onClick={() => setActiveLesson(lesson)}
+            onClick={() => {
+              setActiveLesson(lesson);
+              setQuizGenerated(false);
+              setQuizzes([]);
+            }}
             style={{
               padding: "0.8rem",
               marginBottom: "0.3rem",
@@ -189,24 +224,152 @@ const Learn = () => {
               {activeLesson.title}
             </h2>
 
-            {/* Video placeholder */}
-            <div
-              style={{
-                width: "100%",
-                height: "250px",
-                background: "#fce4ec",
-                borderRadius: "8px",
-                marginBottom: "1rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#e91e63",
-                fontSize: "1.1rem",
-                border: "2px dashed #f8c8dc",
-              }}
-            >
-              📺 Video content for: {activeLesson.title}
-            </div>
+            {/* Lesson Content */}
+            {activeLesson.content ? (
+              <div
+                style={{
+                  background: "#fafafa",
+                  padding: "1.5rem",
+                  borderRadius: "8px",
+                  marginBottom: "1.5rem",
+                  color: "#444",
+                  lineHeight: "1.8",
+                  fontSize: "1rem",
+                  border: "1px solid #f8c8dc",
+                  whiteSpace: "pre-wrap",
+                }}
+              >
+                {activeLesson.content}
+              </div>
+            ) : (
+              <div
+                style={{
+                  padding: "2rem",
+                  background: "#fce4ec",
+                  borderRadius: "8px",
+                  marginBottom: "1.5rem",
+                  textAlign: "center",
+                  color: "#e91e63",
+                  border: "2px dashed #f8c8dc",
+                }}
+              >
+                📝 No notes for this lesson yet
+              </div>
+            )}
+
+            {/* Quiz Section */}
+            {!quizGenerated ? (
+              <button
+                onClick={() => loadQuizzes(activeLesson.id)}
+                style={{
+                  padding: "0.8rem 2rem",
+                  borderRadius: "25px",
+                  background: "#f8c8dc",
+                  color: "#e91e63",
+                  border: "none",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                📝 Take Quiz
+              </button>
+            ) : (
+              <div
+                style={{
+                  marginBottom: "1.5rem",
+                  border: "1px solid #f8c8dc",
+                  borderRadius: "8px",
+                  padding: "1rem",
+                }}
+              >
+                <h4 style={{ color: "#e91e63", marginBottom: "1rem" }}>
+                  Quiz Time!
+                </h4>
+                {quizzes.map((quiz, idx) => (
+                  <div
+                    key={quiz.id}
+                    style={{
+                      marginBottom: "1rem",
+                      padding: "0.8rem",
+                      background: "#fafafa",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <p
+                      style={{
+                        color: "#666",
+                        fontWeight: 600,
+                        marginBottom: "0.5rem",
+                      }}
+                    >
+                      Q{idx + 1}: {quiz.question}
+                    </p>
+                    {quiz.options.map((option, optIdx) => (
+                      <label
+                        key={optIdx}
+                        style={{
+                          display: "block",
+                          marginBottom: "0.3rem",
+                          color: "#555",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <input
+                          type="radio"
+                          name={quiz.id}
+                          checked={selectedAnswers[quiz.id] === optIdx}
+                          onChange={() =>
+                            setSelectedAnswers((prev) => ({
+                              ...prev,
+                              [quiz.id]: optIdx,
+                            }))
+                          }
+                          disabled={quizResults[quiz.id] !== undefined}
+                          style={{ marginRight: "0.5rem" }}
+                        />
+                        {option}
+                        {quizResults[quiz.id] !== undefined &&
+                          optIdx === quiz.answer &&
+                          " ✅"}
+                        {quizResults[quiz.id] === false &&
+                          selectedAnswers[quiz.id] === optIdx &&
+                          " ❌"}
+                      </label>
+                    ))}
+                    {quizResults[quiz.id] === undefined && (
+                      <button
+                        onClick={() =>
+                          submitQuiz(quiz.id, selectedAnswers[quiz.id] ?? -1)
+                        }
+                        style={{
+                          marginTop: "0.5rem",
+                          padding: "0.4rem 1rem",
+                          background: "#e91e63",
+                          color: "white",
+                          border: "none",
+                          borderRadius: "15px",
+                          cursor: "pointer",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        Submit
+                      </button>
+                    )}
+                    {quizResults[quiz.id] === true && (
+                      <p style={{ color: "#4caf50", marginTop: "0.3rem" }}>
+                        Correct! 🎉
+                      </p>
+                    )}
+                    {quizResults[quiz.id] === false && (
+                      <p style={{ color: "#e91e63", marginTop: "0.3rem" }}>
+                        Wrong answer
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Navigation */}
             <div
@@ -222,7 +385,11 @@ const Learn = () => {
                     const idx = lessons.findIndex(
                       (l) => l.id === activeLesson.id,
                     );
-                    if (idx > 0) setActiveLesson(lessons[idx - 1]);
+                    if (idx > 0) {
+                      setActiveLesson(lessons[idx - 1]);
+                      setQuizGenerated(false);
+                      setQuizzes([]);
+                    }
                   }}
                   style={{
                     padding: "0.5rem 1rem",
@@ -241,8 +408,11 @@ const Learn = () => {
                     const idx = lessons.findIndex(
                       (l) => l.id === activeLesson.id,
                     );
-                    if (idx < lessons.length - 1)
+                    if (idx < lessons.length - 1) {
                       setActiveLesson(lessons[idx + 1]);
+                      setQuizGenerated(false);
+                      setQuizzes([]);
+                    }
                   }}
                   style={{
                     padding: "0.5rem 1rem",

@@ -57,6 +57,7 @@ const CourseDetail = () => {
       return;
     }
     try {
+      localStorage.setItem("pendingCourseId", id || "");
       const res = await api.post("/payments/checkout", {
         courseId: id,
         userId: user.id,

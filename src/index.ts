@@ -12,6 +12,7 @@ import quizRoutes from "./routes/quizzes";
 import certificateRoutes from "./routes/certificates";
 import discussionRoutes from "./routes/discussions";
 import dashboardRoutes from "./routes/dashboard";
+import paymentRoutes from "./routes/payments";
 import { protect } from "./middleware/auth";
 
 dotenv.config();
@@ -43,6 +44,7 @@ app.use("/api/quizzes", quizRoutes);
 app.use("/api/certificates", certificateRoutes);
 app.use("/api/discussions", discussionRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Online Learning Platform API is running" });
